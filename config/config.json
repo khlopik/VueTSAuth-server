@@ -1,0 +1,12 @@
+{
+  "test": {
+    "PORT": 8081,
+    "MONGODB_URI": "mongodb://localhost:27017/VueAppTest",
+    "JWT_SECRET": "lkjasdf;l34j5;lweg93qj4tpsm;dlfkj34;lf9"
+  },
+  "development": {
+    "PORT": 8081,
+    "MONGODB_URI": "mongodb://localhost:27017/VueApp",
+    "JWT_SECRET": "asd9fads98sdfn0SDOFnosdnfoasdfnoasdnf"
+  }
+}
