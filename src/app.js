@@ -4,9 +4,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const morgan = require('morgan');
+const _ = require('lodash');
 
 const { mongoose } = require('../db/mongoose');
 const { User } = require('../models/user');
+let { authenticate } = require('../middleware/authenticate');
 
 const port = process.env.PORT;
 
@@ -22,6 +24,26 @@ app.use(cors());
 // 	})
 // });
 
+app.post('/users', (req, res) => {
+	let user = new User(_.pick(req.body, ['email', 'password']));
+	user.access = 'Resident';
+	user.save()
+		.then(() => {
+			return user.generateAuthToken();
+			// res.send({user});
+		})
+		.then(token => {
+			res.header({
+				'Access-Control-Expose-Headers': 'x-auth',
+				'x-auth': token,
+			}).status(200).send(_.pick(user, ['_id', 'access', 'email']));
+		})
+		.catch(e => {
+			console.log('e: ', e);
+			res.status(400).send(e);
+		});
+});
+
 app.post('/auth/login', (req, res) => {
 	let body = _.pick(req.body, ['email', 'password']);
 
@@ -29,12 +51,19 @@ app.post('/auth/login', (req, res) => {
 		.then(user => {
 			return user.generateAuthToken()
 				.then(token => {
-					res.header('x-auth', token).send(user);
+					res.header({
+						'Access-Control-Expose-Headers': 'x-auth',
+						'x-auth': token,
+					}).send(_.pick(user, ['_id', 'access', 'email']));
 				});
 		})
 		.catch(e => {
 			res.status(400).send(e);
 		})
+});
+
+app.get('/auth/me', authenticate, (req, res) => {
+	res.send(req.user);
 });
 
 app.listen(port, () => {
