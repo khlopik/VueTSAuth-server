@@ -2,6 +2,7 @@ require('../config/config.js');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const { ObjectID } = require('mongodb');
 const cors = require('cors');
 const morgan = require('morgan');
 const _ = require('lodash');
@@ -41,6 +42,26 @@ app.post('/users', (req, res) => {
 		.catch(e => {
 			console.log('e: ', e);
 			res.status(400).send(e);
+		});
+});
+
+app.patch('/users/:id', authenticate, (req, res) => {
+	let id = req.params.id;
+	let details = _.pick(req.body, ['name', 'avatar']);
+	if (!ObjectID.isValid(id)) {
+		return res.status(404).send();
+	}
+
+	User.findOneAndUpdate({_id: id }, { $set: { details } })
+		.then(user => {
+			if (!user) {
+				return res.status(404).send();
+			}
+			console.log('details: ', details);
+			return res.send(user);
+		})
+		.catch(error => {
+			res.status(400).send();
 		});
 });
 
