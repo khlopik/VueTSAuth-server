@@ -1,4 +1,6 @@
 let { User } = require('./../models/user');
+const fs = require('fs');
+const path = require('path');
 
 const authenticate = (req, res, next) => {
 	let token = req.header('x-auth');
@@ -11,6 +13,12 @@ const authenticate = (req, res, next) => {
 
 			req.user = user;
 			req.token = token;
+
+			let dir = path.join(__dirname, '..', 'public/images', user._id.toString());
+
+			if (!fs.existsSync(dir)) {
+				fs.mkdirSync(dir);
+			}
 			next();
 		})
 		.catch(e => {

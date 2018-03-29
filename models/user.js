@@ -3,6 +3,8 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const url =require('url');
 
 let UserSchema = new mongoose.Schema({
 	email: {
@@ -46,7 +48,7 @@ let UserSchema = new mongoose.Schema({
 		avatar: {
 			type: String,
 			required: false,
-			default: '',
+			default: null,
 		}
 	}
 });
@@ -54,6 +56,21 @@ let UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function(test) {
 	let user = this;
 	let userObject = user.toObject();
+	if (!userObject.details.avatar) {
+		userObject.details.avatar = path.join('images','unauth','unknown.png');
+	} else {
+		userObject.details.avatar = path.join('images',userObject._id.toString(),userObject.details.avatar);
+	}
+	// var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+	// function fullUrl(req) {
+	// 	return url.format({
+	// 		protocol: req.protocol,
+	// 		host: req.get('host'),
+	// 		pathname: req.originalUrl
+	// 	});
+	// }
+	// console.log('fullUrl: ', fullUrl);
+	// console.log('userObject: ', userObject);
 	return _.pick(userObject, ['_id', 'email', 'access', 'details']);
 };
 

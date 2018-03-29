@@ -1,7 +1,10 @@
 require('../config/config.js');
+const fs = require('fs');
+const path =require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const busboy = require('connect-busboy');
 const { ObjectID } = require('mongodb');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -16,7 +19,9 @@ const port = process.env.PORT;
 const app = express();
 app.use(morgan('combined'));
 app.use(bodyParser.json());
+app.use(busboy());
 app.use(cors());
+app.use(express.static('public'));
 
 // app.get('/posts', (req, res) => {
 // 	res.send({
@@ -26,7 +31,7 @@ app.use(cors());
 // });
 
 app.post('/users', (req, res) => {
-	let user = new User(_.pick(req.body, ['email', 'password']));
+	// let user = new User(_.pick(req.body, ['email', 'password']));
 	user.access = 'Resident';
 	user.save()
 		.then(() => {
@@ -47,22 +52,45 @@ app.post('/users', (req, res) => {
 
 app.patch('/users/:id', authenticate, (req, res) => {
 	let id = req.params.id;
-	let details = _.pick(req.body, ['name', 'avatar']);
+	let details = {
+		avatar: '',
+	};
+
 	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
 
-	User.findOneAndUpdate({_id: id }, { $set: { details } })
-		.then(user => {
-			if (!user) {
-				return res.status(404).send();
-			}
-			console.log('details: ', details);
-			return res.send(user);
-		})
-		.catch(error => {
-			res.status(400).send();
+	if (req.busboy) {
+		req.busboy.on('file', (fieldname, file, filename) => {
+			// console.log('fieldname: ', fieldname, filename);
+			// console.log('typeof file: ', typeof file);
+			const filePath = path.join(__dirname, '..', 'public', 'images', id, filename);
+			// console.log('filePath: ', filePath);
+			file.pipe(fs.createWriteStream(filePath));
+			details[fieldname] = filename;
 		});
+		req.busboy.on('field', (key, value) => {
+			// console.log('key: ', key, value);
+			details[key] = value;
+		});
+		req.busboy.on('finish', () => {
+			User.findOneAndUpdate({
+				_id: id
+			}, { $set: { details }}, {new: true})
+				.then(user => {
+					if (!user) {
+						return res.status(404).send();
+					}
+					// console.log('details: ', details);
+					// console.log('user: ', user);
+					return res.send(user);
+				})
+				.catch(error => {
+					res.status(400).send();
+				});
+		});
+		req.pipe(req.busboy);
+	}
 });
 
 app.post('/auth/login', (req, res) => {
@@ -84,7 +112,9 @@ app.post('/auth/login', (req, res) => {
 });
 
 app.get('/auth/me', authenticate, (req, res) => {
+	serverUrl = req.protocol + '://' + req.get('host');
 	res.send(req.user);
+
 });
 
 app.listen(port, () => {
