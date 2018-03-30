@@ -31,7 +31,7 @@ app.use(express.static('public'));
 // });
 
 app.post('/users', (req, res) => {
-	// let user = new User(_.pick(req.body, ['email', 'password']));
+	let user = new User(_.pick(req.body, ['email', 'password']));
 	user.access = 'Resident';
 	user.save()
 		.then(() => {
