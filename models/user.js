@@ -61,16 +61,6 @@ UserSchema.methods.toJSON = function(test) {
 	} else {
 		userObject.details.avatar = path.join('images',userObject._id.toString(),userObject.details.avatar);
 	}
-	// var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-	// function fullUrl(req) {
-	// 	return url.format({
-	// 		protocol: req.protocol,
-	// 		host: req.get('host'),
-	// 		pathname: req.originalUrl
-	// 	});
-	// }
-	// console.log('fullUrl: ', fullUrl);
-	// console.log('userObject: ', userObject);
 	return _.pick(userObject, ['_id', 'email', 'access', 'details']);
 };
 

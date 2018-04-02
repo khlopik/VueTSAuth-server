@@ -30,6 +30,19 @@ app.use(express.static('public'));
 // 	})
 // });
 
+app.get('/users', authenticate, (req, res) => {
+	if (req.user.access !== 'Admin') {
+		res.status(401).send();
+	}
+	User.find()
+		.then(users => {
+			res.status(200).send(users);
+		})
+		.catch(error => {
+			res.status(404).send();
+		});
+});
+
 app.post('/users', (req, res) => {
 	let user = new User(_.pick(req.body, ['email', 'password']));
 	user.access = 'Resident';
@@ -52,45 +65,77 @@ app.post('/users', (req, res) => {
 
 app.patch('/users/:id', authenticate, (req, res) => {
 	let id = req.params.id;
-	let details = {
-		avatar: '',
-	};
-
+	let details = {};
+	console.log('id: ', id);
 	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
-
+	console.log('valid');
 	if (req.busboy) {
+		console.log('busboy');
 		req.busboy.on('file', (fieldname, file, filename) => {
-			// console.log('fieldname: ', fieldname, filename);
-			// console.log('typeof file: ', typeof file);
 			const filePath = path.join(__dirname, '..', 'public', 'images', id, filename);
-			// console.log('filePath: ', filePath);
 			file.pipe(fs.createWriteStream(filePath));
 			details[fieldname] = filename;
 		});
 		req.busboy.on('field', (key, value) => {
-			// console.log('key: ', key, value);
 			details[key] = value;
 		});
 		req.busboy.on('finish', () => {
-			User.findOneAndUpdate({
+			User.findOne({
 				_id: id
-			}, { $set: { details }}, {new: true})
-				.then(user => {
+			})
+				.then((user) => {
 					if (!user) {
 						return res.status(404).send();
 					}
-					// console.log('details: ', details);
-					// console.log('user: ', user);
-					return res.send(user);
+					console.log('found user');
+					let newUser = {
+						tokens: user.tokens,
+						details: {
+							...user.details,
+							...details,
+						},
+						password: user.password,
+						access: user.access,
+					};
+					User.findOneAndUpdate({
+						_id: id
+					}, { ...newUser }, {new: true})
+						.then(user => {
+							if (!user) {
+								return res.status(404).send();
+							}
+							// console.log('details: ', details);
+							console.log('user: ', user);
+							return res.send(user);
+						})
 				})
 				.catch(error => {
+					console.log('error: ', error);
 					res.status(400).send();
 				});
 		});
 		req.pipe(req.busboy);
 	}
+});
+
+app.delete('/users/:id', authenticate, (req, res) => {
+	let id = req.params.id;
+	console.log('req.user: ', req.user);
+	if (req.user.access === 'Resident' && req.user._id.toString() !== id) {
+		res.status(401).send();
+	}
+	User.findByIdAndRemove(id)
+		.then((user) => {
+			if (!user) {
+				return res.status(404).send();
+			}
+			res.status(200).send();
+		})
+		.catch((error) => {
+			res.status(404).send(error);
+		});
 });
 
 app.post('/auth/login', (req, res) => {
