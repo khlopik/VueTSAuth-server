@@ -154,9 +154,11 @@ app.delete('/users/:id', authenticate, (req, res) => {
 
 app.post('/auth/login', (req, res) => {
 	let body = _.pick(req.body, ['email', 'password']);
-
 	User.findByCredentials(body.email, body.password)
 		.then(user => {
+			if (!user) {
+				res.status(401).send();
+			}
 			return user.generateAuthToken()
 				.then(token => {
 					res.header({
@@ -166,7 +168,8 @@ app.post('/auth/login', (req, res) => {
 				});
 		})
 		.catch(e => {
-			res.status(400).send(e);
+			console.log('e: ', e);
+			res.status(401).send(e);
 		})
 });
 
