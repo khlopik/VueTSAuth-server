@@ -23,13 +23,6 @@ app.use(busboy());
 app.use(cors());
 app.use(express.static('public'));
 
-// app.get('/posts', (req, res) => {
-// 	res.send({
-// 		title: 'Hello world!',
-// 		description: 'This is just a description',
-// 	})
-// });
-
 app.get('/users', authenticate, (req, res) => {
 	if (req.user.access !== 'Admin') {
 		res.status(401).send();
@@ -120,9 +113,29 @@ app.patch('/users/:id', authenticate, (req, res) => {
 	}
 });
 
+app.patch('/users/access/:id', authenticate, (req, res) => {
+	let id = req.params.id;
+	let body = _.pick(req.body, ['access']);
+	if (!ObjectID.isValid(id)) {
+		return res.status(404).send();
+	}
+	if (req.user.access !== 'Admin') {
+		res.status(401).send();
+	}
+	User.findByIdAndUpdate(id, { $set: { access: body.access }}, { new: true })
+		.then((user) => {
+			if (!user) {
+				res.status(404).send();
+			}
+			res.status(200).send(user);
+		})
+		.catch((error) => {
+			res.status(404).send(error);
+		})
+});
+
 app.delete('/users/:id', authenticate, (req, res) => {
 	let id = req.params.id;
-	console.log('req.user: ', req.user);
 	if (req.user.access === 'Resident' && req.user._id.toString() !== id) {
 		res.status(401).send();
 	}
