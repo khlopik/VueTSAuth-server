@@ -21,6 +21,7 @@ app.use(morgan('combined'));
 app.use(bodyParser.json());
 app.use(busboy());
 app.use(cors());
+app.use(express.static('dist'));
 app.use(express.static('public'));
 
 app.get('/users', authenticate, (req, res) => {
