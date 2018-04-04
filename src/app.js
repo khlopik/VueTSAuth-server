@@ -19,7 +19,7 @@ let { authenticate } = require('../middleware/authenticate');
 const port = process.env.PORT;
 const storage = multer.diskStorage({
 	destination(req, file, callback) {
-		callback(null, path.join(__dirname, '..', 'public', 'images', req.user._id.toString()));
+		callback(null, path.join(__dirname, '..', 'public', 'images', req.params.id));
 	},
 	filename(req, file, callback) {
 		callback(null, file.originalname);
