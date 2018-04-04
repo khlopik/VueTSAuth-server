@@ -46,25 +46,26 @@ app.post('/users', (req, res) => {
 			// res.send({user});
 		})
 		.then(token => {
-			res.header({
+			return res.header({
 				'Access-Control-Expose-Headers': 'x-auth',
 				'x-auth': token,
 			}).status(200).send(_.pick(user, ['_id', 'access', 'email']));
 		})
 		.catch(e => {
-			console.log('e: ', e);
-			res.status(400).send(e);
+			// console.log('e: ', e);
+			return res.status(400).send(e);
 		});
 });
 
 app.patch('/users/:id', authenticate, (req, res) => {
 	let id = req.params.id;
 	let details = {};
-	console.log('id: ', id);
 	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
-	console.log('valid');
+	if (req.user.access !== 'Admin' && req.user._id.toString() !== id) {
+		return res.status(401).send();
+	}
 	if (req.busboy) {
 		console.log('busboy');
 		req.busboy.on('file', (fieldname, file, filename) => {
@@ -107,7 +108,7 @@ app.patch('/users/:id', authenticate, (req, res) => {
 				})
 				.catch(error => {
 					console.log('error: ', error);
-					res.status(400).send();
+					return res.status(400).send();
 				});
 		});
 		req.pipe(req.busboy);
@@ -121,34 +122,34 @@ app.patch('/users/access/:id', authenticate, (req, res) => {
 		return res.status(404).send();
 	}
 	if (req.user.access !== 'Admin') {
-		res.status(401).send();
+		return res.status(401).send();
 	}
 	User.findByIdAndUpdate(id, { $set: { access: body.access }}, { new: true })
 		.then((user) => {
 			if (!user) {
-				res.status(404).send();
+				return res.status(404).send();
 			}
-			res.status(200).send(user);
+			return res.status(200).send(user);
 		})
 		.catch((error) => {
-			res.status(404).send(error);
+			return res.status(404).send(error);
 		})
 });
 
 app.delete('/users/:id', authenticate, (req, res) => {
 	let id = req.params.id;
 	if (req.user.access === 'Resident' && req.user._id.toString() !== id) {
-		res.status(401).send();
+		return res.status(401).send();
 	}
 	User.findByIdAndRemove(id)
 		.then((user) => {
 			if (!user) {
 				return res.status(404).send();
 			}
-			res.status(200).send();
+			return res.status(200).send();
 		})
 		.catch((error) => {
-			res.status(404).send(error);
+			return res.status(404).send(error);
 		});
 });
 
@@ -157,26 +158,24 @@ app.post('/auth/login', (req, res) => {
 	User.findByCredentials(body.email, body.password)
 		.then(user => {
 			if (!user) {
-				res.status(401).send();
+				return res.status(401).send();
 			}
 			return user.generateAuthToken()
 				.then(token => {
-					res.header({
+					return res.header({
 						'Access-Control-Expose-Headers': 'x-auth',
 						'x-auth': token,
 					}).send(_.pick(user, ['_id', 'access', 'email']));
 				});
 		})
 		.catch(e => {
-			console.log('e: ', e);
-			res.status(401).send(e);
+			// console.log('e: ', e);
+			return res.status(401).send(e);
 		})
 });
 
 app.get('/auth/me', authenticate, (req, res) => {
-	serverUrl = req.protocol + '://' + req.get('host');
 	res.send(req.user);
-
 });
 
 app.listen(port, () => {
