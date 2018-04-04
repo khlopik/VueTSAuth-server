@@ -1,10 +1,12 @@
 require('../config/config.js');
-const fs = require('fs');
+// const fs = require('fs');
 const path =require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const busboy = require('connect-busboy');
+// const busboy = require('connect-busboy');
+const multer  = require('multer');
+
 const { ObjectID } = require('mongodb');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -15,11 +17,19 @@ const { User } = require('../models/user');
 let { authenticate } = require('../middleware/authenticate');
 
 const port = process.env.PORT;
+const storage = multer.diskStorage({
+	destination(req, file, callback) {
+		callback(null, path.join(__dirname, '..', 'public', 'images', req.user._id.toString()));
+	},
+	filename(req, file, callback) {
+		callback(null, file.originalname);
+	},
+});
+const upload = multer({ storage });
 
 const app = express();
 app.use(morgan('combined'));
 app.use(bodyParser.json());
-app.use(busboy());
 app.use(cors());
 app.use(express.static('dist'));
 app.use(express.static('public'));
@@ -57,62 +67,41 @@ app.post('/users', (req, res) => {
 		});
 });
 
-app.patch('/users/:id', authenticate, (req, res) => {
+app.patch('/users/:id', authenticate, upload.single('avatar'), (req, res) => {
 	let id = req.params.id;
-	let details = {};
 	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
 	if (req.user.access !== 'Admin' && req.user._id.toString() !== id) {
 		return res.status(401).send();
 	}
-	if (req.busboy) {
-		console.log('busboy');
-		req.busboy.on('file', (fieldname, file, filename) => {
-			const filePath = path.join(__dirname, '..', 'public', 'images', id, filename);
-			file.pipe(fs.createWriteStream(filePath));
-			details[fieldname] = filename;
-		});
-		req.busboy.on('field', (key, value) => {
-			details[key] = value;
-		});
-		req.busboy.on('finish', () => {
-			User.findOne({
-				_id: id
-			})
-				.then((user) => {
+	const details = {
+		...req.file && {[req.file.fieldname]: req.file.originalname},
+		...req.body.name && {name: req.body.name},
+	};
+	console.log('details: ', details);
+	User.findOne({
+		_id: id
+	})
+		.then(user => {
+			if (!user) {
+				return res.status(404).send();
+			}
+			const updatedDetails = {
+				...user.details,
+				...details,
+			};
+			User.findByIdAndUpdate(id, { $set: { details: { ...updatedDetails }} }, {new: true})
+				.then(user => {
 					if (!user) {
 						return res.status(404).send();
 					}
-					console.log('found user');
-					let newUser = {
-						tokens: user.tokens,
-						details: {
-							...user.details,
-							...details,
-						},
-						password: user.password,
-						access: user.access,
-					};
-					User.findOneAndUpdate({
-						_id: id
-					}, { ...newUser }, {new: true})
-						.then(user => {
-							if (!user) {
-								return res.status(404).send();
-							}
-							// console.log('details: ', details);
-							console.log('user: ', user);
-							return res.send(user);
-						})
+					return res.status(200).send(user);
 				})
 				.catch(error => {
-					console.log('error: ', error);
-					return res.status(400).send();
+					return res.status(400).send(error);
 				});
-		});
-		req.pipe(req.busboy);
-	}
+		})
 });
 
 app.patch('/users/access/:id', authenticate, (req, res) => {
