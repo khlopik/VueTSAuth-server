@@ -1,5 +1,5 @@
 require('../config/config.js');
-// const fs = require('fs');
+const fs = require('fs');
 const path =require('path');
 
 const express = require('express');
@@ -19,7 +19,11 @@ let { authenticate } = require('../middleware/authenticate');
 const port = process.env.PORT;
 const storage = multer.diskStorage({
 	destination(req, file, callback) {
-		callback(null, path.join(__dirname, '..', 'public', 'images', req.params.id));
+		const imagePath = path.join(__dirname, '..', 'public', 'images', req.params.id);
+		if (!fs.existsSync(imagePath)) {
+			fs.mkdirSync(imagePath);
+		}
+		callback(null, imagePath);
 	},
 	filename(req, file, callback) {
 		callback(null, file.originalname);
@@ -79,7 +83,6 @@ app.patch('/users/:id', authenticate, upload.single('avatar'), (req, res) => {
 		...req.file && {[req.file.fieldname]: req.file.originalname},
 		...req.body.name && {name: req.body.name},
 	};
-	console.log('details: ', details);
 	User.findOne({
 		_id: id
 	})
