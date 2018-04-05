@@ -15,6 +15,10 @@ const _ = require('lodash');
 const { mongoose } = require('../db/mongoose');
 const { User } = require('../models/user');
 let { authenticate } = require('../middleware/authenticate');
+let { delayed } = require('../middleware/delayed');
+let { imagePath } = require('../middleware/imagePath');
+
+const defaultAvatar = path.join('images','unauth','unknown.png');
 
 const port = process.env.PORT;
 const storage = multer.diskStorage({
@@ -38,7 +42,7 @@ app.use(cors());
 app.use(express.static('dist'));
 app.use(express.static('public'));
 
-app.get('/users', authenticate, (req, res) => {
+app.get('/users', authenticate, imagePath, (req, res) => {
 	if (req.user.access !== 'Admin') {
 		res.status(401).send();
 	}
@@ -71,7 +75,7 @@ app.post('/users', (req, res) => {
 		});
 });
 
-app.patch('/users/:id', authenticate, upload.single('avatar'), (req, res) => {
+app.patch('/users/:id', authenticate, delayed, upload.single('avatar'), (req, res) => {
 	let id = req.params.id;
 	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
@@ -82,6 +86,7 @@ app.patch('/users/:id', authenticate, upload.single('avatar'), (req, res) => {
 	const details = {
 		...req.file && {[req.file.fieldname]: req.file.originalname},
 		...req.body.name && {name: req.body.name},
+		...req.body.avatar === '' && {avatar: req.body.avatar},
 	};
 	User.findOne({
 		_id: id
@@ -157,7 +162,7 @@ app.post('/auth/login', (req, res) => {
 					return res.header({
 						'Access-Control-Expose-Headers': 'x-auth',
 						'x-auth': token,
-					}).send(_.pick(user, ['_id', 'access', 'email']));
+					}).send(_.pick(user, ['_id', 'access', 'email', 'details']));
 				});
 		})
 		.catch(e => {
@@ -166,8 +171,12 @@ app.post('/auth/login', (req, res) => {
 		})
 });
 
-app.get('/auth/me', authenticate, (req, res) => {
-	res.send(req.user);
+app.get('/auth/me', authenticate, imagePath, (req, res) => {
+	const result = {
+		..._.pick(req.user, ['_id', 'email', 'access', 'details']),
+		defaultAvatar
+	};
+	res.send(result);
 });
 
 app.listen(port, () => {

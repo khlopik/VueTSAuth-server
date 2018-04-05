@@ -53,12 +53,10 @@ let UserSchema = new mongoose.Schema({
 	}
 });
 
-UserSchema.methods.toJSON = function(test) {
+UserSchema.methods.toJSON = function() {
 	let user = this;
 	let userObject = user.toObject();
-	if (!userObject.details.avatar) {
-		userObject.details.avatar = path.join('images','unauth','unknown.png');
-	} else {
+	if (userObject.details.avatar) {
 		userObject.details.avatar = path.join('images',userObject._id.toString(),userObject.details.avatar);
 	}
 	return _.pick(userObject, ['_id', 'email', 'access', 'details']);
