@@ -1,0 +1,24 @@
+const { User } = require('../models/user');
+const { ObjectID } = require('mongodb');
+const _ = require('lodash');
+
+module.exports = function updateUserAccess(req, res) {
+	let id = req.params.id;
+	let body = _.pick(req.body, ['access']);
+	if (!ObjectID.isValid(id)) {
+		return res.status(404).send();
+	}
+	if (req.user.access !== 'Admin') {
+		return res.status(401).send();
+	}
+	User.findByIdAndUpdate(id, { $set: { access: body.access }}, { new: true })
+		.then((user) => {
+			if (!user) {
+				return res.status(404).send();
+			}
+			return res.status(200).send(user);
+		})
+		.catch((error) => {
+			return res.status(404).send(error);
+		})
+};
