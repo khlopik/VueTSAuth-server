@@ -100,14 +100,7 @@ UserSchema.statics.findByToken = function(token) {
 };
 
 UserSchema.statics.findByCredentials = function(email, password) {
-	console.log('findByCredentials in user');
 	let User = this;
-	// console.log('User: ', User.findOne({ 'email': email }));
-	console.log('User.findOne', User.findOne({'email': email }).exec());
-	User.findOne({ 'email': email }).exec()
-		.then(() => {
-			console.log('hello: ');
-		});
 	return User.findOne({ 'email': email }).exec()
 		.then(user => {
 			console.log('findOne');
@@ -117,7 +110,6 @@ UserSchema.statics.findByCredentials = function(email, password) {
 			return new Promise((resolve, reject) => {
 				bcrypt.compare(password, user.password)
 					.then(result => {
-						console.log('ok in compare');
 						if (result) {
 							resolve(user)
 						} else {
@@ -125,13 +117,11 @@ UserSchema.statics.findByCredentials = function(email, password) {
 						}
 					})
 					.catch(error => {
-						console.log('error in compare');
 						return reject(error);
 					})
 			})
 		})
 		.catch((error) => {
-			console.log('error');
 			return Promise.reject(error);
 		})
 };

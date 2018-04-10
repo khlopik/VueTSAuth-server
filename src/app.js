@@ -1,18 +1,14 @@
-require('../config/config.js');
-// const fs = require('fs');
-// const path =require('path');
-const { User } = require('../models/user');
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer  = require('multer');
-
 const { ObjectID } = require('mongodb');
 const cors = require('cors');
 const morgan = require('morgan');
 const _ = require('lodash');
 
-// const { mongoose } = require('../db/mongoose');
+require('../config/config.js');
+
+const { mongoose } = require('../db/mongoose');
 let { authenticate } = require('../middleware/authenticate');
 let { delayed } = require('../middleware/delayed');
 let { imagePath } = require('../middleware/imagePath');
@@ -22,18 +18,6 @@ const { storage } = require('../controllers/storage');
 
 
 const port = process.env.PORT;
-// const storage = multer.diskStorage({
-// 	destination(req, file, callback) {
-// 		const imagePath = path.join(__dirname, '..', 'public', 'images', req.params.id);
-// 		if (!fs.existsSync(imagePath)) {
-// 			fs.mkdirSync(imagePath);
-// 		}
-// 		callback(null, imagePath);
-// 	},
-// 	filename(req, file, callback) {
-// 		callback(null, file.originalname);
-// 	},
-// });
 const upload = multer({ storage });
 
 const app = express();
