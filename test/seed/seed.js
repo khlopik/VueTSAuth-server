@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
 
 const { User } = require('../../models/user');
@@ -45,7 +46,15 @@ const populateUsers = (done) => {
 		.catch((e) => done(e));
 };
 
+const removeImages = () => {
+	if (fs.existsSync(`public/images/${users[0]._id.toString()}`)) {
+		fs.unlinkSync(`public/images/${users[0]._id.toString()}/unknown.png`);
+		fs.rmdirSync(`public/images/${users[0]._id.toString()}`);
+	}
+};
+
 module.exports = {
 	users,
 	populateUsers,
+	removeImages,
 };

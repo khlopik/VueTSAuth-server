@@ -31,7 +31,7 @@ app.get('/users', authenticate, imagePath, getAllUsers);
 
 app.post('/users', createUser);
 
-app.patch('/users/:id', authenticate, delayed, upload.single('avatar'), updateUserDetails);
+app.patch('/users/:id', authenticate, upload.single('avatar'), updateUserDetails);
 
 app.patch('/users/access/:id', authenticate, updateUserAccess);
 
