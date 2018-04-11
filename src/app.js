@@ -41,8 +41,7 @@ app.post('/auth/login', loginByPassword);
 
 app.get('/auth/me', authenticate, imagePath, getUserDetails);
 
-
-if(!module.parent) {
+if (!module.parent) {
 	app.listen(port, () => {
 		console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
 		console.log('Environment: ', process.env.NODE_ENV);
