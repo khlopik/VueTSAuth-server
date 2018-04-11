@@ -42,5 +42,9 @@ app.post('/auth/login', loginByPassword);
 app.get('/auth/me', authenticate, imagePath, getUserDetails);
 
 app.listen(port, () => {
+	console.log('Environment: ', process.env.NODE_ENV);
+	console.log('Database: ', process.env.MONGODB_URI);
 	console.log(`Starting server on port ${port}`);
 });
+
+module.exports = { app };

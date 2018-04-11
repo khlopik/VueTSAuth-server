@@ -65,11 +65,13 @@ UserSchema.methods.toJSON = function() {
 UserSchema.methods.generateAuthToken = function() {
 	let user = this;
 	let token = jwt.sign({_id: user._id.toHexString(), access: user.access}, process.env.JWT_SECRET).toString();
-
 	user.tokens.push({access: user.access, token});
 	return user.save()
 		.then(() => {
 			return token;
+		})
+		.catch((error) => {
+			return Promise.reject(error)
 		});
 };
 
@@ -95,7 +97,6 @@ UserSchema.statics.findByToken = function(token) {
 	return User.findOne({
 		'_id': decoded._id,
 		'tokens.token': token,
-		// 'tokens.access': 'auth'
 	});
 };
 
@@ -122,6 +123,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
 			})
 		})
 		.catch((error) => {
+			console.log('Here is error');
 			return Promise.reject(error);
 		})
 };
