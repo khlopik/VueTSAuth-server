@@ -6,7 +6,7 @@ module.exports = function loginByPassword(req, res) {
 	User.findByCredentials(body.email, body.password)
 		.then(user => {
 			if (!user) {
-				return res.status(401).send();
+				return Promise.reject('No user found');
 			}
 			return user.generateAuthToken()
 				.then(token => {

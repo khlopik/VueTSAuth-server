@@ -19,7 +19,7 @@ describe('Create User', () => {
 			.send(newUser)
 			.expect(200)
 			.expect((res) => {
-				expect(res.body).to.include({email: newUser.email})
+				expect(res.body).to.include({email: newUser.email});
 				expect(res.headers['x-auth']).to.exist;
 				expect(res.body).to.be.an('object').that.has.all.keys(['_id', 'email', 'access']);
 			})
@@ -35,6 +35,7 @@ describe('Create User', () => {
 						}
 						expect(user).to.exist;
 						expect(user.password).to.not.equal(newUser.password);
+						expect(user.tokens).to.have.lengthOf.above(0);
 						done();
 					})
 					.catch((e) => done(e));
@@ -60,7 +61,7 @@ describe('Create User', () => {
 			})
 	});
 
-	it('should return validation error if requiest invalid', function (done) {
+	it('should return validation error if request invalid', function (done) {
 		const newUser = {
 			email: 'asdfg',
 			password: '123'

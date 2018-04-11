@@ -29,10 +29,6 @@ let UserSchema = new mongoose.Schema({
 	},
 	tokens: [
 		{
-			access: {
-				type: String,
-				required: false,
-			},
 			token: {
 				type: String,
 				required: true,
@@ -87,13 +83,11 @@ UserSchema.methods.removeToken = function(token) {
 UserSchema.statics.findByToken = function(token) {
 	let User = this;
 	let decoded;
-
 	try {
 		decoded = jwt.verify(token, process.env.JWT_SECRET);
 	} catch(e) {
 		return Promise.reject();
 	}
-
 	return User.findOne({
 		'_id': decoded._id,
 		'tokens.token': token,
@@ -104,7 +98,6 @@ UserSchema.statics.findByCredentials = function(email, password) {
 	let User = this;
 	return User.findOne({ 'email': email }).exec()
 		.then(user => {
-			console.log('findOne');
 			if (!user) {
 				return Promise.reject('No user found!');
 			}
@@ -123,7 +116,6 @@ UserSchema.statics.findByCredentials = function(email, password) {
 			})
 		})
 		.catch((error) => {
-			console.log('Here is error');
 			return Promise.reject(error);
 		})
 };

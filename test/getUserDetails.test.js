@@ -14,8 +14,8 @@ describe('GET /auth/me', () => {
 			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.expect((res) => {
-				expect(res.body._id).is.equal(users[0]._id.toHexString())
-				expect(res.body.email).is.equal(users[0].email)
+				expect(res.body._id).is.equal(users[0]._id.toHexString());
+				expect(res.body.email).is.equal(users[0].email);
 			})
 			.end(done);
 	});
