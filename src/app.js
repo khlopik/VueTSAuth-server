@@ -1,10 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const multer  = require('multer');
 const { ObjectID } = require('mongodb');
 const cors = require('cors');
 const morgan = require('morgan');
 const _ = require('lodash');
+const passport = require('passport');
+const routes = require('../routes/index');
+
+require('../handlers/passport');
 
 require('../config/config.js');
 
@@ -21,25 +26,31 @@ const port = process.env.PORT;
 const upload = multer({ storage });
 
 const app = express();
+
+// populates req.cookies with any cookies that came along with the request
+app.use(cookieParser());
+
+// Sessions allow us to store data on visitors from request to request
+// This keeps users logged in and allows us to send flash messages
+// app.use(session({
+// 	secret: process.env.SECRET,
+// 	key: process.env.KEY,
+// 	resave: false,
+// 	saveUninitialized: false,
+// 	store: new MongoStore({ mongooseConnection: mongoose.connection })
+// }));
+
+// Passport JS is what we use to handle our logins
+// app.use(passport.initialize());
+// app.use(passport.session());
+
 app.use(morgan('combined'));
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static('dist'));
 app.use(express.static('public'));
 
-app.get('/users', authenticate, imagePath, getAllUsers);
-
-app.post('/users', createUser);
-
-app.patch('/users/:id', authenticate, upload.single('avatar'), updateUserDetails);
-
-app.patch('/users/access/:id', authenticate, updateUserAccess);
-
-app.delete('/users/:id', authenticate, deleteUser);
-
-app.post('/auth/login', loginByPassword);
-
-app.get('/auth/me', authenticate, imagePath, getUserDetails);
+app.use('/', routes);
 
 if (!module.parent) {
 	app.listen(port, () => {
