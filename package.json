@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node start.js",
-    "dev": "nodemon --exec 'npm start'",
+    "dev": "export NODE_ENV=development || SET \"NODE_ENV=development\" && nodemon --exec 'npm start'",
     "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && npx mocha -b",
     "test-watch": "nodemon --exec 'npm test'"
   },

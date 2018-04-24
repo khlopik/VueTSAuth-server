@@ -1,3 +1,5 @@
+require('dotenv').config({ path: 'config/variables.test.env' });
+
 const { ObjectID } = require('mongodb');
 const fs = require('fs');
 require('dotenv').config({ path: 'variables.test.env' });

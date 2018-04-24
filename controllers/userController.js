@@ -75,7 +75,13 @@ exports.getAllUsers = (req, res) => {
 	}
 	User.find()
 		.then(users => {
-			res.status(200).send(users);
+			const usersWithAvatars = users.map(user => {
+				if (user.details && user.details.avatar !== '' && user.details.avatar !== null) {
+					user.details.avatar = path.join('images',user._id.toString(),user.details.avatar);
+				}
+				return user;
+			});
+			res.status(200).send(usersWithAvatars);
 		})
 		.catch(error => {
 			res.status(404).send();
@@ -102,6 +108,7 @@ exports.updateUserDetails = (req, res) => {
 			if (!user) {
 				return res.status(404).send();
 			}
+
 			const updatedDetails = {
 				...user.details,
 				...details,
@@ -110,6 +117,9 @@ exports.updateUserDetails = (req, res) => {
 				.then(user => {
 					if (!user) {
 						return res.status(404).send();
+					}
+					if (user.details && user.details.avatar !== '' && user.details.avatar !== null) {
+						user.details.avatar = path.join('images',user._id.toString(),user.details.avatar);
 					}
 					return res.status(200).send(user);
 				})
@@ -147,6 +157,7 @@ exports.getUserDetails = (req, res) => {
 			..._.pick(req.user, ['_id', 'email', 'access', 'details']),
 			defaultAvatar
 		};
+		console.log('JSON.stringify(result, undefined,2): ', JSON.stringify(result, undefined,2));
 		res.status(200).send(result);
 	} catch(err) {
 		// console.log('err: ', err);

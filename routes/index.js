@@ -29,7 +29,7 @@ router.delete('/users/:id', (req, res, next) => {
 	next();
 }, authController.isLoggedIn, userController.deleteUser);
 
-router.post('/auth/login', authController.login, userController.getUserDetails);
+router.post('/auth/login', authController.login, imagePath, userController.getUserDetails);
 
 router.get('/auth/me', authController.isLoggedIn, imagePath, userController.getUserDetails);
 
