@@ -1,8 +1,11 @@
 const { ObjectID } = require('mongodb');
 const fs = require('fs');
-const jwt = require('jsonwebtoken');
+require('dotenv').config({ path: 'variables.test.env' });
+require('../../db/mongoose');
+const User = require('../../models/User');
+const app = require('../../src/app');
+const request = require('supertest');
 
-const { User } = require('../../models/user');
 
 const userOneId = new ObjectID();
 const userTwoId = new ObjectID();
@@ -13,9 +16,6 @@ const users = [
 		email: 'email1@example.com',
 		password: 'Password1',
 		access: 'Resident',
-		tokens: [{
-			token: jwt.sign({_id: userOneId, access: 'Resident'}, process.env.JWT_SECRET).toString(),
-		}]
 	},
 	{
 		_id: userTwoId,
@@ -28,21 +28,22 @@ const users = [
 		email: 'email3@example.com',
 		password: 'Password3',
 		access: 'Admin',
-		tokens: [{
-			token: jwt.sign({_id: userThreeId, access: 'Resident'}, process.env.JWT_SECRET).toString(),
-		}]
 	}
 ];
 
 const populateUsers = (done) => {
 	User.remove({})
 		.then(() => {
-			const userOne = new User(users[0]).save();
-			const userTwo = new User(users[1]).save();
-			const userThree = new User(users[2]).save();
-			return Promise.all([userOne, userTwo, userThree]);
+			// console.log('Users have been removed');
+			const userOnePromise = User.registerAsync(users[0], users[0].password);
+			const userTwoPromise = User.registerAsync(users[1], users[1].password);
+			const userThreePromise = User.registerAsync(users[2], users[2].password);
+			return Promise.all([userOnePromise, userTwoPromise, userThreePromise]);
 		})
-		.then(() => done())
+		.then(() => {
+			// console.log('Users have been added to DB');
+			done();
+		})
 		.catch((e) => done(e));
 };
 
@@ -53,8 +54,11 @@ const removeImages = () => {
 	}
 };
 
+const authenticatedUser = request.agent(app);
+
 module.exports = {
 	users,
 	populateUsers,
 	removeImages,
+	authenticatedUser,
 };

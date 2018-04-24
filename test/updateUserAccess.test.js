@@ -1,17 +1,56 @@
 const request = require('supertest');
 const expect = require('chai').expect;
-const { app } = require('../src/app');
-const { User } = require('../models/user');
-const { users, populateUsers } = require('./seed/seed');
+const app = require('../src/app');
+const User = require('../models/User');
+const { users, populateUsers, authenticatedUser } = require('./seed/seed');
 
-beforeEach(populateUsers);
+describe('PATCH /users/access/:id, authorized user has Resident rights', () => {
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
 
-describe('PATCH /users/access/:id', () => {
+	// Create authenticated user with Resident rights (users[0])
+	beforeEach((done) => {
+		authenticatedUser
+			.post('/auth/login')
+			.send(users[0])
+			.expect(200)
+			.end(done)
+	});
 
-	it('should modify access if user is Admin', function (done) {
+	it('should return 401 error if user is not Admin', function (done) {
+		authenticatedUser
+			.patch('/users/access/' + users[0]._id.toString())
+			.send({ access: 'Admin' })
+			.expect(401)
+			.end(done);
+	});
+
+	it('should return 401 error if user is not authorized', function (done) {
 		request(app)
 			.patch('/users/access/' + users[0]._id.toString())
-			.set('x-auth', users[2].tokens[0].token)
+			.send({ access: 'Admin' })
+			.expect(401)
+			.end(done);
+	});
+
+});
+
+describe('PATCH /users/access/:id, authorized user has Admin rights', () => {
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
+
+	// Create authenticated user with Resident rights (users[0])
+	beforeEach((done) => {
+		authenticatedUser
+			.post('/auth/login')
+			.send(users[2])
+			.expect(200)
+			.end(done)
+	});
+
+	it('should modify access if user is Admin', function (done) {
+		authenticatedUser
+			.patch('/users/access/' + users[0]._id.toString())
 			.send({ access: 'Admin' })
 			.expect(200)
 			.end((err, res) => {
@@ -29,32 +68,13 @@ describe('PATCH /users/access/:id', () => {
 						done(error);
 					})
 			})
-
-	});
-
-	it('should return 401 error if user is not Admin', function (done) {
-		request(app)
-			.patch('/users/access/' + users[0]._id.toString())
-			.set('x-auth', users[0].tokens[0].token)
-			.send({ access: 'Admin' })
-			.expect(401)
-			.end(done);
-	});
-
-	it('should return 401 error if user is not authorized', function (done) {
-		request(app)
-			.patch('/users/access/' + users[0]._id.toString())
-			.send({ access: 'Admin' })
-			.expect(401)
-			.end(done);
 	});
 
 	it('should return 404 if id is incorrect', function (done) {
 		const badId = 'asdfasdf';
 
-		request(app)
+		authenticatedUser
 			.patch('/users/access/' + badId)
-			.set('x-auth', users[2].tokens[0].token)
 			.send({ access: 'Admin' })
 			.expect(404)
 			.end(done);

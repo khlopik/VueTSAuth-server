@@ -1,17 +1,25 @@
 const request = require('supertest');
 const expect = require('chai').expect;
-const { app } = require('../src/app');
-const { User } = require('../models/user');
-const { users, populateUsers } = require('./seed/seed');
+const app = require('../src/app');
+const User = require('../models/User');
+const { users, populateUsers, authenticatedUser } = require('./seed/seed');
 
+describe('GET /auth/me, authorized user has Resident rights', () => {
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
 
-beforeEach(populateUsers);
+	// Create authenticated user with Resident rights (users[0])
+	beforeEach((done) => {
+		authenticatedUser
+			.post('/auth/login')
+			.send(users[0])
+			.expect(200)
+			.end(done)
+	});
 
-describe('GET /auth/me', () => {
 	it('should return user if authenticated', function (done) {
-		request(app)
+		authenticatedUser
 			.get('/auth/me')
-			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.expect((res) => {
 				expect(res.body._id).is.equal(users[0]._id.toHexString());

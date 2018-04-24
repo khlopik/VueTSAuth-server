@@ -1,27 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const multer  = require('multer');
+const authController = require('../controllers/authController');
+const userController = require('../controllers/userController');
 
 const { storage } = require('../controllers/storage');
 const upload = multer({ storage });
 
 let { imagePath } = require('../middleware/imagePath');
 
-let { authenticate } = require('../middleware/authenticate');
-const { getAllUsers, createUser, updateUserDetails, updateUserAccess, deleteUser, loginByPassword, getUserDetails } = require('../controllers');
+const { updateUserDetails, deleteUser, loginByPassword, getUserDetails } = require('../controllers');
 
-router.get('/users', authenticate, imagePath, getAllUsers);
 
-router.post('/users', createUser);
+router.get('/users', authController.isLoggedIn, imagePath, userController.getAllUsers);
 
-router.patch('/users/:id', authenticate, upload.single('avatar'), updateUserDetails);
+router.post('/users',
+	userController.validateRegister,
+	userController.register,
+	authController.login,
+	userController.getUserDetails
+);
 
-router.patch('/users/access/:id', authenticate, updateUserAccess);
+router.patch('/users/:id', authController.isLoggedIn, upload.single('avatar'), userController.updateUserDetails);
 
-router.delete('/users/:id', authenticate, deleteUser);
+router.patch('/users/access/:id', authController.isLoggedIn, userController.updateUserAccess);
 
-router.post('/auth/login', loginByPassword);
+router.delete('/users/:id', (req, res, next) => {
+	next();
+}, authController.isLoggedIn, userController.deleteUser);
 
-router.get('/auth/me', authenticate, imagePath, getUserDetails);
+router.post('/auth/login', authController.login, userController.getUserDetails);
+
+router.get('/auth/me', authController.isLoggedIn, imagePath, userController.getUserDetails);
+
+router.get('/logout', authController.logout);
 
 module.exports = router;

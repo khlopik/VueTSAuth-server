@@ -1,13 +1,15 @@
 const request = require('supertest');
 const expect = require('chai').expect;
-const { app } = require('../src/app');
-const { User } = require('../models/user');
-const { users, populateUsers } = require('./seed/seed');
+const { users, populateUsers, authenticatedUser } = require('./seed/seed');
+const User = require('../models/User');
+const app = require('../src/app');
 
 
-beforeEach(populateUsers);
+
 
 describe('Create User', () => {
+	beforeEach(populateUsers);
+
 	it('should create a new user', function (done) {
 		const newUser = {
 			email: 'newuser@example.com',
@@ -20,8 +22,7 @@ describe('Create User', () => {
 			.expect(200)
 			.expect((res) => {
 				expect(res.body).to.include({email: newUser.email});
-				expect(res.headers['x-auth']).to.exist;
-				expect(res.body).to.be.an('object').that.has.all.keys(['_id', 'email', 'access']);
+				expect(res.body).to.be.an('object').that.includes.keys(['_id', 'email', 'access']);
 			})
 			.end((err, res) => {
 				if (err) {
@@ -34,8 +35,6 @@ describe('Create User', () => {
 							return done('new User has not been created')
 						}
 						expect(user).to.exist;
-						expect(user.password).to.not.equal(newUser.password);
-						expect(user.tokens).to.have.lengthOf.above(0);
 						done();
 					})
 					.catch((e) => done(e));
@@ -56,7 +55,8 @@ describe('Create User', () => {
 				if (err) {
 					return done(err);
 				}
-				expect(res.body.errmsg).is.exist;
+				// console.log('res.body: ', res.error.text);
+				expect(res.error).is.exist;
 				done();
 			})
 	});
@@ -75,7 +75,8 @@ describe('Create User', () => {
 				if (err) {
 					done(err);
 				}
-				expect(res.body.errors).is.exist;
+				// console.log('res.error: ', res.error.text);
+				expect(res.error).is.exist;
 				done();
 			})
 	});

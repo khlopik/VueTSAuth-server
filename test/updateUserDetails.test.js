@@ -1,20 +1,31 @@
 const request = require('supertest');
 const fs = require('fs');
 const expect = require('chai').expect;
-const { app } = require('../src/app');
-const { User } = require('../models/user');
-const { users, populateUsers,removeImages } = require('./seed/seed');
+const app = require('../src/app');
+const User = require('../models/User');
+const { users, populateUsers, removeImages, authenticatedUser } = require('./seed/seed');
 
-beforeEach(populateUsers);
-afterEach(removeImages);
+const userAvatar = 'public/images/unauth/unknown.png';
 
-describe('PATCH /users/:id', () => {
-	const userAvatar = 'public/images/unauth/unknown.png';
+describe('PATCH /users/:id, authorized user has Resident rights', () => {
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
+
+	// Create authenticated user with Resident rights (users[0])
+	beforeEach((done) => {
+		authenticatedUser
+			.post('/auth/login')
+			.send(users[0])
+			.expect(200)
+			.end(done)
+	});
+
+	// remove temporary avatar files
+	afterEach(removeImages);
 
 	it('should update details (name and avatar) for user which are authorized', function (done) {
-		request(app)
+		authenticatedUser
 			.patch('/users/' + users[0]._id.toString())
-			.set('x-auth', users[0].tokens[0].token)
 			.field('name', 'Firstname')
 			.attach('avatar', userAvatar)
 			.expect(200)
@@ -39,9 +50,8 @@ describe('PATCH /users/:id', () => {
 	});
 
 	it('should update only name for user which are authorized', function (done) {
-		request(app)
+		authenticatedUser
 			.patch('/users/' + users[0]._id.toString())
-			.set('x-auth', users[0].tokens[0].token)
 			.field('name', 'Oleksii')
 			.expect(200)
 			.end((err, res) => {
@@ -62,10 +72,9 @@ describe('PATCH /users/:id', () => {
 	});
 
 	it('should update only avatar for user which are authorized', function (done) {
-		request(app)
+		authenticatedUser
 			.patch('/users/' + users[0]._id.toString())
 			.attach('avatar', userAvatar)
-			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.end((err, res) => {
 				if (err) {
@@ -85,10 +94,55 @@ describe('PATCH /users/:id', () => {
 
 	});
 
-	it('should update details of other user if authorized user is Admin', function (done) {
+	it('should return 401 error if user tries to update details of other user and he is not Admin', function (done) {
+		authenticatedUser
+			.patch('/users/' + users[1]._id.toString())
+			.field('name', 'Firstname')
+			.attach('avatar', userAvatar)
+			.expect(401)
+			.end(done);
+	});
+
+	it('should return 401 if user is not authorized', function (done) {
 		request(app)
 			.patch('/users/' + users[0]._id.toString())
-			.set('x-auth', users[2].tokens[0].token)
+			.field('name', 'Firstname')
+			// .attach('avatar', userAvatar)
+			.expect(401)
+			.end(done);
+	});
+
+	it('should return 404 if user id is not valid', function (done) {
+		const badId = 'asdfasdf';
+
+		authenticatedUser
+			.patch('/users/' + badId)
+			// .field('name', 'Oleksii')
+			.attach('avatar', userAvatar)
+			.expect(404)
+			.end(done);
+	});
+});
+
+describe('PATCH /users/:id, authorized user has Admin rights', () => {
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
+
+	// Create authenticated user with Resident rights (users[0])
+	beforeEach((done) => {
+		authenticatedUser
+			.post('/auth/login')
+			.send(users[2])
+			.expect(200)
+			.end(done)
+	});
+
+	// remove temporary avatar files
+	afterEach(removeImages);
+
+	it('should update details of other user if authorized user is Admin', function (done) {
+		authenticatedUser
+			.patch('/users/' + users[0]._id.toString())
 			.field('name', 'Firstname')
 			.attach('avatar', userAvatar)
 			.expect(200)
@@ -110,36 +164,5 @@ describe('PATCH /users/:id', () => {
 						return done(error);
 					})
 			})
-	});
-
-	it('should return 401 error if user tries to update details of other user and he is not Admin', function (done) {
-		request(app)
-			.patch('/users/' + users[1]._id.toString())
-			.set('x-auth', users[0].tokens[0].token)
-			.field('name', 'Firstname')
-			.attach('avatar', userAvatar)
-			.expect(401)
-			.end(done);
-	});
-
-	it('should return 401 if user is not authorized', function (done) {
-		request(app)
-			.patch('/users/' + users[0]._id.toString())
-			.field('name', 'Firstname')
-			// .attach('avatar', userAvatar)
-			.expect(401)
-			.end(done);
-	});
-
-	it('should return 404 if user id is not valid', function (done) {
-		const badId = 'asdfasdf';
-
-		request(app)
-			.patch('/users/' + badId)
-			.set('x-auth', users[0].tokens[0].token)
-			// .field('name', 'Oleksii')
-			.attach('avatar', userAvatar)
-			.expect(404)
-			.end(done);
 	});
 });

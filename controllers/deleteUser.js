@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { User } = require('../models/user');
+const { User } = require('../models/User');
 
 module.exports = function deleteUser(req, res) {
 	let id = req.params.id;

@@ -1,12 +1,13 @@
 const request = require('supertest');
 const expect = require('chai').expect;
-const { app } = require('../src/app');
-const { User } = require('../models/user');
+const app = require('../src/app');
+const { User } = require('../models/User');
 const { users, populateUsers } = require('./seed/seed');
 
-beforeEach(populateUsers);
-
 describe('POST /auth/login', function () {
+
+	// Full VueAppTest db with test users
+	beforeEach(populateUsers);
 
 	it('should return new token if authentication is success', (done) => {
 		const goodUser = {
@@ -19,11 +20,8 @@ describe('POST /auth/login', function () {
 			.send(goodUser)
 			.expect(200)
 			.end((err, res) => {
-				if (err) {
-					return done(err)
-				}
-				expect(res.body).to.be.an('object').that.has.all.keys(['_id', 'access', 'email', 'details']);
-				expect(res.headers).has.property('x-auth');
+				expect(err).to.be.null;
+				expect(res.body).to.be.an('object').that.has.all.keys(['_id', 'access', 'email', 'details', 'defaultAvatar']);
 				done();
 			})
 	});
