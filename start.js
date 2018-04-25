@@ -28,7 +28,7 @@ const httpsOptions = {
 
 if (!module.parent) {
 	if (process.env.NODE_ENV === 'production') {
-		app.listen(8082, () => {
+		app.listen(process.env.PORT, () => {
 			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
 			console.log('Environment: ', process.env.NODE_ENV);
 			console.log('Database: ', process.env.MONGODB_URI);
