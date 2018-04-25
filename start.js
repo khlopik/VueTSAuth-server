@@ -27,7 +27,7 @@ const httpsOptions = {
 };
 
 if (!module.parent) {
-	if (process.env.NODE_ENV === 'production') {
+	// if (process.env.NODE_ENV === 'production') {
 		app.listen(process.env.PORT, () => {
 			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
 			console.log('Environment: ', process.env.NODE_ENV);
@@ -35,20 +35,20 @@ if (!module.parent) {
 			console.log(`Starting server on port ${port}`);
 			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
 		});
-	} else {
-		http.createServer(app).listen(8082, () => {
-			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-			console.log('Environment: ', process.env.NODE_ENV);
-			console.log('Database: ', process.env.MONGODB_URI);
-			console.log(`Starting server on port ${port}`);
-			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-		});
-		https.createServer(httpsOptions, app).listen(port, () => {
-			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-			console.log('Environment: ', process.env.NODE_ENV);
-			console.log('Database: ', process.env.MONGODB_URI);
-			console.log(`Starting server on port ${port}`);
-			console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
-		});
-	}
+	// } else {
+		// http.createServer(app).listen(8082, () => {
+		// 	console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
+		// 	console.log('Environment: ', process.env.NODE_ENV);
+		// 	console.log('Database: ', process.env.MONGODB_URI);
+		// 	console.log(`Starting server on port ${port}`);
+		// 	console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
+		// });
+		// https.createServer(httpsOptions, app).listen(port, () => {
+		// 	console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
+		// 	console.log('Environment: ', process.env.NODE_ENV);
+		// 	console.log('Database: ', process.env.MONGODB_URI);
+		// 	console.log(`Starting server on port ${port}`);
+		// 	console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-');
+		// });
+	// }
 }

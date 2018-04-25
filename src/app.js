@@ -71,7 +71,7 @@ app.use (function (req, res, next) {
 		// console.log('req.url: ', req.url);
 		// console.log('req.headers.host: ', req.headers);
 		// console.log('req.headers.host.split: ', req.headers.host.split(':'));
-		if (process.env.NODE_ENV === production) {
+		if (process.env.NODE_ENV === 'production') {
 			res.redirect('https://' + req.headers.host + req.url);
 		} else {
 			res.redirect('https://' + req.headers.host.split(':')[0] + ':8081');
