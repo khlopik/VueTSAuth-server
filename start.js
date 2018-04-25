@@ -19,12 +19,12 @@ require('./models/User');
 const app = require('./src/app');
 const port = process.env.PORT;
 
-const key = fs.readFileSync('/home/khlopik/GoIT/VueTSAuthTemplate/khlopik.tk.key');
-const cert = fs.readFileSync('/home/khlopik/GoIT/VueTSAuthTemplate/khlopik.tk.pem');
-const httpsOptions = {
-	key,
-	cert
-};
+// const key = fs.readFileSync('/home/khlopik/GoIT/VueTSAuthTemplate/khlopik.tk.key');
+// const cert = fs.readFileSync('/home/khlopik/GoIT/VueTSAuthTemplate/khlopik.tk.pem');
+// const httpsOptions = {
+// 	key,
+// 	cert
+// };
 
 if (!module.parent) {
 	// if (process.env.NODE_ENV === 'production') {
