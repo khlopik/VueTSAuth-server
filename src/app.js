@@ -59,47 +59,25 @@ app.use(cors({
 }));
 
 
-
-app.enable('trust proxy');
-app.use (function (req, res, next) {
-	if (req.secure) {
-		// request was via https, so do no special handling
-		next();
-	} else {
-		console.log('redirect', 'https://' + req.headers.host + req.url);
-		// request was via http, so redirect to https
-		// console.log('req.url: ', req.url);
-		// console.log('req.headers.host: ', req.headers);
-		// console.log('req.headers.host.split: ', req.headers.host.split(':'));
-		if (process.env.NODE_ENV === 'production') {
-			res.redirect('https://' + req.headers.host + req.url);
-		} else {
-			res.redirect('https://' + req.headers.host.split(':')[0] + ':8081');
-		}
-	}
-});
-app.use(express.static('dist'));
-app.use(express.static('public'));
 app.use(helmet({
 	"Strict-Transport-Security": "max-age=31536000",
 }));
+app.enable('trust proxy');
+if (process.env.NODE_ENV === 'production') {
+	app.use (function (req, res, next) {
+		if (req.secure) {
+			// request was via https, so do no special handling
+			next();
+		} else {
+			res.redirect('https://' + req.headers.host + req.url);
+		}
+	});
+}
+
+app.use(express.static('dist'));
+app.use(express.static('public'));
 
 
 app.use('/', routes);
-
-// app.use((req, res, next) => {
-// 	console.log('req.secure: ', req.secure);
-// 	// if(!req.secure) {
-// 	// 	const secureUrl = "https://" + req.headers['host'] + req.url;
-// 	// 	res.writeHead(301, { "Location":  secureUrl });
-// 	// 	res.end();
-// 	// }
-// 	if (req.headers['x-forwarded-proto'] !== 'https') {
-// 		console.log('redirect to', ['https://', req.get('Host'), req.url].join(''));
-// 		return res.redirect(['https://', req.get('Host'), req.url].join(''));
-// 		next();
-// 	}
-// 	next();
-// });
 
 module.exports = app;
