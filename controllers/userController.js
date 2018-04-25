@@ -157,7 +157,7 @@ exports.getUserDetails = (req, res) => {
 			..._.pick(req.user, ['_id', 'email', 'access', 'details']),
 			defaultAvatar
 		};
-		console.log('JSON.stringify(result, undefined,2): ', JSON.stringify(result, undefined,2));
+		// console.log('JSON.stringify(result, undefined,2): ', JSON.stringify(result, undefined,2));
 		res.status(200).send(result);
 	} catch(err) {
 		// console.log('err: ', err);
