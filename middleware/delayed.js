@@ -1,7 +1,5 @@
-const delayed = (req, res, next) => {
-	// setTimeout(() => {
+exports.delayed = (req, res, next) => {
+	setTimeout(() => {
 		next();
-	// }, 2000)
+	}, 1000)
 };
-
-module.exports = {delayed};

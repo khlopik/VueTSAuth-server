@@ -91,10 +91,10 @@ exports.getAllUsers = (req, res) => {
 exports.updateUserDetails = (req, res) => {
 	let id = req.params.id;
 	if (!ObjectID.isValid(id)) {
-		return res.status(404).send();
+		return res.status(404).send('User\'s ID is not valid to modify.');
 	}
 	if (req.user.access !== 'Admin' && req.user._id.toString() !== id) {
-		return res.status(401).send();
+		return res.status(401).send('You don\'t have enough permissions to perform this action.');
 	}
 	const details = {
 		...req.file && {[req.file.fieldname]: req.file.originalname},
@@ -106,7 +106,7 @@ exports.updateUserDetails = (req, res) => {
 	})
 		.then(user => {
 			if (!user) {
-				return res.status(404).send();
+				return res.status(404).send('Cannot find user to modify.');
 			}
 
 			const updatedDetails = {
@@ -116,7 +116,7 @@ exports.updateUserDetails = (req, res) => {
 			User.findByIdAndUpdate(id, { $set: { details: { ...updatedDetails }} }, {new: true})
 				.then(user => {
 					if (!user) {
-						return res.status(404).send();
+						return res.status(404).send('Cannot find user to modify.');
 					}
 					if (user.details && user.details.avatar !== '' && user.details.avatar !== null) {
 						user.details.avatar = path.join('images',user._id.toString(),user.details.avatar);
@@ -132,17 +132,17 @@ exports.updateUserDetails = (req, res) => {
 exports.deleteUser = (req, res) => {
 	let id = req.params.id;
 	if (!ObjectID.isValid(id)) {
-		return res.status(404).send();
+		return res.status(404).send('User\'s ID is not valid to modify.');
 	}
 	if (req.user.access === 'Resident' && req.user._id.toString() !== id) {
-		return res.status(401).send();
+		return res.status(401).send('You don\'t have enough permissions to perform this action.');
 	}
 	User.findByIdAndRemove(id)
 		.then((user) => {
 			if (!user) {
-				return res.status(404).send();
+				return res.status(404).send('Cannot find user to delete.');
 			}
-			return res.status(200).send();
+			return res.status(200).send('User has been successfully deleted.');
 		})
 		.catch((error) => {
 			return res.status(404).send(error);

@@ -37,9 +37,15 @@ exports.isLoggedIn = (req, res, next) => {
 		next();
 		return;
 	}
-	// req.flash('error', 'Oops you must be logged in to do that!');
-	// res.redirect('/login');
-	res.status(401).send('You must be logged in');
+	res.status(401).send('You are not authorized on the server. Please log in.');
+};
+
+exports.firstIsLoggedIn = (req, res, next) => {
+	if(req.isAuthenticated()) {
+		next();
+		return;
+	}
+	res.status(200).send('false');
 };
 
 exports.forgot = async (req, res) => {
